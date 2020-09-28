@@ -27,7 +27,7 @@ jobs:
     
     - name: Package Application
       run: |
-        pyinstaller --add-data 'src/icon.png:.' --onefile --noconsole --icon src/pathfix.ico --clean src/pathfix.py
+        pyinstaller --add-data src/icon.png:. --onefile --noconsole --icon src/pathfix.ico --clean src/pathfix.py
 
     - uses: actions/upload-artifact@v2
       with:
