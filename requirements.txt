@@ -1,2 +1,4 @@
+pyinstaller
 pylint
+pywin32
 wxPython

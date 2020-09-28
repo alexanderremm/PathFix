@@ -1,7 +1,13 @@
 import os
+import pathlib
 import sys
+import threading
+import time
 import wx
 import wx.adv
+import win32api
+import win32con
+import win32clipboard
 
 TRAY_TOOLTIP = 'PathFix'
 TRAY_ICON = 'icon.png'
@@ -24,12 +30,16 @@ def create_menu_item(menu, label, func):
 
 class TaskBarIcon(wx.adv.TaskBarIcon):
     def __init__(self, frame):
+        self.shutdown = False # Flag to determine whether the app and subsystems should shutdown
+        self.enabled = True # Enabled flag
         self.frame = frame
         super(TaskBarIcon, self).__init__()
         self.set_icon(TRAY_ICON)
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
 
-        self.enabled = True
+        # Ctrl+C detection module
+        self.copy_det = threading.Thread(target=self.copy_det_thread, daemon=True)
+        self.copy_det.start()
 
     def CreatePopupMenu(self):
         menu = wx.Menu()
@@ -40,6 +50,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         create_menu_item(menu, 'About', self.on_about)
         menu.AppendSeparator()
         create_menu_item(menu, 'Exit', self.on_exit)
+
         return menu
 
     def set_icon(self, path):
@@ -62,8 +73,32 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         wx.MessageBox("Version 0.1", caption="About PathFix")
 
     def on_exit(self, event):
+        self.shutdown = True
         wx.CallAfter(self.Destroy)
         self.frame.Close()
+    
+    def copy_det_thread(self):
+        while not self.shutdown:
+            if self.enabled:
+                ctrl_flag = wx.GetKeyState(wx.WXK_CONTROL)
+                c_flag = win32api.GetAsyncKeyState(ord('C'))
+                if (ctrl_flag and c_flag):
+                    # Attempt to get the path/data
+                    try:
+                        # Open clipboard
+                        win32clipboard.OpenClipboard()
+                        cb_data = win32clipboard.GetClipboardData()
+                        path = pathlib.Path(cb_data)
+                        print(path.as_posix())
+                        win32clipboard.EmptyClipboard()
+                        win32clipboard.SetClipboardText(path.as_posix())
+                        # Close clipboard
+                        win32clipboard.CloseClipboard()
+                    except:
+                        # Unable to get/handle specified clipboard data
+                        pass
+                time.sleep(0.1)
+
 
 class App(wx.App):
     def OnInit(self):
