@@ -26,11 +26,10 @@ jobs:
         python -m pip install -r requirements.txt
     
     - name: Package Application
-      uses: JackMcKew/pyinstaller-action-windows@main
-      with:
-        path: src
+      run: |
+        pyinstaller --add-data 'src/icon.png:.' --onefile --noconsole --icon src/pathfix.ico --clean src/pathfix.py
 
     - uses: actions/upload-artifact@v2
       with:
         name: pathfix
-        path: src/dist/windows
+        path: dist
