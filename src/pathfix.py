@@ -10,7 +10,8 @@ import win32con
 import win32clipboard
 
 TRAY_TOOLTIP = 'PathFix'
-TRAY_ICON = 'icon.png'
+TRAY_ICON_ENABLED = 'icon.png'
+TRAY_ICON_DISABLED = 'icon_disabled.png'
 
 def resource_path(relative_path):
     """ Get absolute path to resource, works for dev and for PyInstaller """
@@ -34,7 +35,7 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
         self.enabled = True # Enabled flag
         self.frame = frame
         super(TaskBarIcon, self).__init__()
-        self.set_icon(TRAY_ICON)
+        self.set_icon(TRAY_ICON_ENABLED)
         self.Bind(wx.adv.EVT_TASKBAR_LEFT_DOWN, self.on_left_down)
 
         # Ctrl+C detection module
@@ -63,10 +64,12 @@ class TaskBarIcon(wx.adv.TaskBarIcon):
 
     def on_enable(self, event):
         self.enabled = True
+        self.set_icon(TRAY_ICON_ENABLED)
         print('enabled')
 
     def on_disable(self, event):
         self.enabled = False
+        self.set_icon(TRAY_ICON_DISABLED)
         print('disabled')
 
     def on_about(self, event):
